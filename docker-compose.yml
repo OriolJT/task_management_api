@@ -1,0 +1,58 @@
+# docker-compose.yml
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: task_manager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      # Optional: set proxy headers if behind reverse proxy
+      # KC_PROXY: edge
+    ports:
+      - "8081:8080"
+    networks:
+      - backend
+
+  app:
+    build: .
+    container_name: task-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - keycloak
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/task_manager
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Point the resource server to the in-cluster Keycloak issuer
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/task-realm
+      KEYCLOAK_CLIENT_ID: task-api
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:

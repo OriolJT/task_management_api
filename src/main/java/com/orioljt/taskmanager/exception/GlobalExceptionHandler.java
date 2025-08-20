@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.orioljt.taskmanager.dto.ErrorResponse;
 
 /**
  * Centralized REST error handling producing a consistent problem-style JSON body.
@@ -34,11 +34,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   @NonNull HttpHeaders headers,
                                                                   @NonNull HttpStatusCode status,
                                                                   @NonNull WebRequest request) {
-        Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.groupingBy(FieldError::getField, Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
-        Map<String, Object> details = new HashMap<>();
-        details.put("fieldErrors", fieldErrors);
-        return build(HttpStatus.BAD_REQUEST, "Validation failed", details);
+    Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+        .collect(Collectors.groupingBy(FieldError::getField, Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
+    return build(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
     }
 
     @ExceptionHandler(Exception.class)
@@ -46,15 +44,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", null);
     }
 
-    private ResponseEntity<Object> build(HttpStatus status, String message, Map<String, Object> extra) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", Instant.now().toString());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("message", message);
-        if (extra != null) {
-            body.putAll(extra);
-        }
+    private ResponseEntity<Object> build(HttpStatus status, String message, Map<String, List<String>> fieldErrors) {
+        ErrorResponse body = ErrorResponse.of(status.value(), status.getReasonPhrase(), message, fieldErrors);
         return ResponseEntity.status(status).body(body);
     }
 }

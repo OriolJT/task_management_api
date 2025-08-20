@@ -54,7 +54,7 @@ public class JwtUserProvisioningFilter extends OncePerRequestFilter {
                     User user = new User();
                     user.setId(userId);
                     if (email == null || email.isBlank()) {
-                        email = userId.toString() + "@local";
+                        email = userId + "@local";
                     }
                     user.setEmail(email);
                     // Random encoded placeholder; passwords aren't used with JWT
@@ -63,6 +63,7 @@ public class JwtUserProvisioningFilter extends OncePerRequestFilter {
                     UserRole role = jwtAuth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                             .anyMatch(a -> a.equals("ROLE_ADMIN")) ? UserRole.ADMIN : UserRole.USER;
                     user.setRole(role);
+                    user.markNew();
                     users.save(user);
                     log.info("Provisioned local user {} from JWT.", userId);
                 }
@@ -77,6 +78,7 @@ public class JwtUserProvisioningFilter extends OncePerRequestFilter {
                         UserRole role = jwtAuth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                                 .anyMatch(a -> a.equals("ROLE_ADMIN")) ? UserRole.ADMIN : UserRole.USER;
                         user.setRole(role);
+                        user.markNew();
                         users.save(user);
                         log.info("Provisioned local user '{}' (non-UUID sub) from JWT.", email);
                     }
@@ -85,6 +87,6 @@ public class JwtUserProvisioningFilter extends OncePerRequestFilter {
                 }
             }
         }
-        filterChain.doFilter(request, response);
+    filterChain.doFilter(request, response);
     }
 }

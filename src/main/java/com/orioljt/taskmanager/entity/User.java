@@ -1,15 +1,16 @@
 package com.orioljt.taskmanager.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
+
 import java.time.Instant;
 import java.util.*;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -28,6 +29,10 @@ public class User {
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects = new ArrayList<>();
 
+    @Transient
+    private boolean newRecord = true;
+
+    @Override
     public UUID getId() {
         return id;
     }
@@ -56,7 +61,33 @@ public class User {
         this.password = password;
     }
 
+    public UserRole getRole() {
+        return role;
+    }
+
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    @Override
+    public boolean isNew() {
+        return newRecord || id == null;
+    }
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {
+        this.newRecord = false;
+    }
+
+    public void markNew() {
+        this.newRecord = true;
+    }
+
+    @PrePersist
+    void ensureId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
     }
 }

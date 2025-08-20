@@ -30,7 +30,6 @@ public class CurrentUserProvider {
             String sub = jwt.getSubject();
             try {
                 UUID uid = UUID.fromString(sub);
-                // If we have a local user with this id, prefer it
                 if (users.existsById(uid)) return uid;
             } catch (Exception ignored) { /* not a UUID */ }
             String email = jwt.getClaim("email");

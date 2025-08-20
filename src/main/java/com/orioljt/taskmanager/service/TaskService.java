@@ -54,7 +54,7 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public TaskResponse get(UUID projectId, UUID taskId) {
-        requireOwnedProject(projectId); // ensures scope & authorization
+    requireOwnedProject(projectId);
         Task t = tasks.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() -> new NotFoundException("Task not found"));
         return toDto(t);

@@ -1,6 +1,7 @@
 package com.orioljt.taskmanager.config;
 
 import com.orioljt.taskmanager.entity.User;
+import com.orioljt.taskmanager.entity.UserRole;
 import com.orioljt.taskmanager.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Configuration
 public class DataLoader {
@@ -47,8 +49,11 @@ public class DataLoader {
         }
 
         User user = new User();
-        user.setEmail(email);
+    user.setId(UUID.randomUUID());
+    user.markNew();
+    user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRole(UserRole.ADMIN);
         userRepository.save(user);
 
         log.warn("Created default user '{}'. Please change this password.", email);

@@ -15,7 +15,7 @@ public class SecurityUserDetails {
         return username -> userRepository.findByEmail(username)
                 .map(u -> User.withUsername(u.getEmail())
                         .password(u.getPassword())
-                        .roles("USER")
+                        .roles(u.getRole() != null ? u.getRole().name() : "USER")
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

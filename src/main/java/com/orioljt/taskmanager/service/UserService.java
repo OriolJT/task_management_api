@@ -31,6 +31,8 @@ public class UserService {
 
     public UserResponse register(CreateUserRequest createUserRequest) {
         User user = new User();
+        user.setId(UUID.randomUUID());
+        user.markNew();
         user.setEmail(createUserRequest.email());
         user.setPassword(passwordEncoder.encode(createUserRequest.password()));
         User savedUser = userRepository.save(user);

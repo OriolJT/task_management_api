@@ -13,7 +13,7 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
     private final String resourceClientId;
 
     public KeycloakJwtGrantedAuthoritiesConverter() {
-        this.resourceClientId = null; // include all client roles
+    this.resourceClientId = null;
     }
 
     public KeycloakJwtGrantedAuthoritiesConverter(String resourceClientId) {
@@ -24,7 +24,6 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
     public Collection<GrantedAuthority> convert(Jwt jwt) {
         Set<String> roles = new HashSet<>();
 
-        // realm roles
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
         if (realmAccess != null) {
             Object rs = realmAccess.get("roles");
@@ -35,7 +34,6 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
             }
         }
 
-        // client roles
         Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
         if (resourceAccess != null) {
             if (resourceClientId != null && resourceAccess.containsKey(resourceClientId)) {
@@ -47,7 +45,6 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
             }
         }
 
-        // map to ROLE_ authorities (uppercased)
         Set<GrantedAuthority> authorities = roles.stream()
                 .filter(Objects::nonNull)
                 .map(String::valueOf)
@@ -57,7 +54,6 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        // scopes if present
         String scope = jwt.getClaim("scope");
         if (scope != null) {
             for (String sc : scope.split(" ")) {
@@ -68,7 +64,6 @@ public class KeycloakJwtGrantedAuthoritiesConverter implements Converter<Jwt, Co
         return authorities;
     }
 
-    @SuppressWarnings("unchecked")
     private Collection<String> extractClientRoles(Object clientAccess) {
         List<String> result = new ArrayList<>();
         if (clientAccess instanceof Map<?, ?> map) {

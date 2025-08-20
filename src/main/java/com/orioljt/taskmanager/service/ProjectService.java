@@ -8,6 +8,7 @@ import com.orioljt.taskmanager.exception.NotFoundException;
 import com.orioljt.taskmanager.repository.ProjectRepository;
 import com.orioljt.taskmanager.repository.UserRepository;
 import com.orioljt.taskmanager.security.CurrentUserProvider;
+import com.orioljt.taskmanager.mapper.ProjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +22,16 @@ public class ProjectService {
     private final ProjectRepository projects;
     private final UserRepository users;
     private final CurrentUserProvider currentUser;
+    private final ProjectMapper mapper;
 
     public ProjectService(ProjectRepository projects,
                           UserRepository users,
-                          CurrentUserProvider currentUser) {
+                          CurrentUserProvider currentUser,
+                          ProjectMapper mapper) {
         this.projects = projects;
         this.users = users;
         this.currentUser = currentUser;
+        this.mapper = mapper;
     }
 
     public ProjectResponse create(ProjectRequest request) {
@@ -35,17 +39,14 @@ public class ProjectService {
         User owner = users.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Owner user not found: " + ownerId));
 
-        Project project = new Project();
-        project.setName(request.name());
-        project.setOwner(owner);
-
-        return toDto(projects.save(project));
+    Project project = mapper.toNewEntity(request, owner);
+    return mapper.toResponse(projects.save(project));
     }
 
     @Transactional(readOnly = true)
     public List<ProjectResponse> list() {
         UUID ownerId = currentUser.getCurrentUserId();
-        return projects.findAllByOwnerId(ownerId).stream().map(this::toDto).toList();
+    return projects.findAllByOwnerId(ownerId).stream().map(mapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -53,30 +54,23 @@ public class ProjectService {
         UUID ownerId = currentUser.getCurrentUserId();
         Project p = projects.findByIdAndOwnerId(projectId, ownerId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
-        return toDto(p);
+    return mapper.toResponse(p);
     }
 
     public ProjectResponse updateName(UUID projectId, ProjectRequest request) {
         UUID ownerId = currentUser.getCurrentUserId();
         Project project = projects.findByIdAndOwnerId(projectId, ownerId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
-        project.setName(request.name());
-        return toDto(projects.save(project));
+    mapper.update(project, request);
+    return mapper.toResponse(projects.save(project));
     }
 
     public void delete(UUID projectId) {
         UUID ownerId = currentUser.getCurrentUserId();
         Project p = projects.findByIdAndOwnerId(projectId, ownerId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
-        projects.delete(p);
+    projects.delete(p);
     }
 
-    private ProjectResponse toDto(Project project) {
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getOwner().getId(),
-                project.getCreatedAt()
-        );
-    }
+    // Mapping moved to ProjectMapper
 }

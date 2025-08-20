@@ -7,6 +7,7 @@ import com.orioljt.taskmanager.entity.User;
 import com.orioljt.taskmanager.exception.NotFoundException;
 import com.orioljt.taskmanager.repository.UserRepository;
 import com.orioljt.taskmanager.security.CurrentUserProvider;
+import com.orioljt.taskmanager.mapper.UserMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +21,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserProvider currentUserProvider;
+    private final UserMapper mapper;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       CurrentUserProvider currentUserProvider) {
+                       CurrentUserProvider currentUserProvider,
+                       UserMapper mapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.currentUserProvider = currentUserProvider;
+        this.mapper = mapper;
     }
 
     public UserResponse register(CreateUserRequest createUserRequest) {
@@ -35,8 +39,8 @@ public class UserService {
         user.markNew();
         user.setEmail(createUserRequest.email());
         user.setPassword(passwordEncoder.encode(createUserRequest.password()));
-        User savedUser = userRepository.save(user);
-        return toResponse(savedUser);
+    User savedUser = userRepository.save(user);
+    return mapper.toResponse(savedUser);
     }
 
     @Transactional(readOnly = true)
@@ -44,14 +48,14 @@ public class UserService {
         UUID userId = currentUserProvider.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return toResponse(user);
+    return mapper.toResponse(user);
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return toResponse(user);
+    return mapper.toResponse(user);
     }
 
     public void updateMyPassword(UpdateUserPasswordRequest updateUserPasswordRequest) {
@@ -60,10 +64,8 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         user.setPassword(passwordEncoder.encode(updateUserPasswordRequest.newPassword()));
-        userRepository.save(user);
+    userRepository.save(user);
     }
 
-    private UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getCreatedAt());
-    }
+    // Mapping moved to UserMapper
 }

@@ -33,7 +33,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UserService(userRepository, passwordEncoder, currentUserProvider);
+        service = new UserService(userRepository, passwordEncoder, currentUserProvider, new com.orioljt.taskmanager.mapper.UserMapper());
         when(passwordEncoder.encode(any())).thenAnswer(inv -> "enc-" + inv.getArgument(0));
     }
 
@@ -45,7 +45,7 @@ class UserServiceTest {
             u.setId(UUID.randomUUID());
             return u;
         });
-        CreateUserRequest req = new CreateUserRequest("a@b.com", "pwd");
+    CreateUserRequest req = new CreateUserRequest("a@b.com", "Password1");
         UserResponse res = service.register(req);
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
@@ -99,8 +99,8 @@ class UserServiceTest {
         u.setPassword("old");
         when(userRepository.findById(id)).thenReturn(Optional.of(u));
 
-        service.updateMyPassword(new UpdateUserPasswordRequest("new"));
-        verify(passwordEncoder).encode("new");
+    service.updateMyPassword(new UpdateUserPasswordRequest("NewPassword1"));
+        verify(passwordEncoder).encode("NewPassword1");
         verify(userRepository).save(u);
     }
 
@@ -109,7 +109,7 @@ class UserServiceTest {
         UUID id = UUID.randomUUID();
         when(currentUserProvider.getCurrentUserId()).thenReturn(id);
         when(userRepository.findById(id)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.updateMyPassword(new UpdateUserPasswordRequest("p")))
+    assertThatThrownBy(() -> service.updateMyPassword(new UpdateUserPasswordRequest("Password1")))
                 .isInstanceOf(NotFoundException.class);
     }
 }

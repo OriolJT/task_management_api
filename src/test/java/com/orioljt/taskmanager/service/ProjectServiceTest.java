@@ -37,7 +37,7 @@ class ProjectServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ProjectService(projectRepository, userRepository, currentUserProvider);
+        service = new ProjectService(projectRepository, userRepository, currentUserProvider, new com.orioljt.taskmanager.mapper.ProjectMapper());
         userId = UUID.randomUUID();
         owner = new User();
         owner.setId(userId);

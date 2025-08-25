@@ -59,12 +59,16 @@ class TaskControllerTest {
 
     @Test
     void list_shouldReturnTasks() throws Exception {
-        UUID projectId = UUID.randomUUID();
-        TaskResponse resp = new TaskResponse(UUID.randomUUID(), "T1", null, TaskStatus.TODO, 1, null, projectId, Instant.now());
-        when(service.list(projectId)).thenReturn(List.of(resp));
-        mvc.perform(get("/api/projects/{pid}/tasks", projectId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].projectId").value(projectId.toString()));
+    UUID projectId = UUID.randomUUID();
+    TaskResponse resp = new TaskResponse(UUID.randomUUID(), "T1", null, TaskStatus.TODO, 1, null, projectId, Instant.now());
+    org.springframework.data.domain.Page<com.orioljt.taskmanager.dto.TaskResponse> page =
+        new org.springframework.data.domain.PageImpl<>(List.of(resp), org.springframework.data.domain.PageRequest.of(0, 20), 1);
+    when(service.page(eq(projectId), org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+    mvc.perform(get("/api/projects/{pid}/tasks", projectId))
+        .andExpect(status().isOk())
+        .andExpect(header().string("X-Total-Count", "1"))
+        .andExpect(header().string("Link", org.hamcrest.Matchers.containsString("/api/projects/" + projectId + "/tasks?page=0&size=20")))
+        .andExpect(jsonPath("$[0].projectId").value(projectId.toString()));
     }
 
     @Test

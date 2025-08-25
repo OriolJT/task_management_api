@@ -69,7 +69,7 @@ class SecurityIntegrationTest {
     void adminTokenCanAccessAdminEndpointsAndUserTokenCannot() throws Exception {
         User u = new User();
         u.setEmail("fetchme@example.com");
-        u.setPassword("x");
+        u.setPassword("Password123");
         users.save(u);
 
         String adminToken = "admin_" + UUID.randomUUID();
@@ -82,6 +82,31 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/api/admin/users/{id}", u.getId())
                         .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void unauthenticatedCannotAccessAccountEndpoints() throws Exception {
+        mvc.perform(get("/api/account"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(patch("/api/account").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(patch("/api/account/password").contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"Password123\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void userCannotPatchAdminUpdateUser() throws Exception {
+        User u = new User();
+        u.setEmail("to-update@example.com");
+        u.setPassword("Password123");
+        users.save(u);
+
+        String userToken = "user_" + UUID.randomUUID();
+        mvc.perform(patch("/api/admin/users/{id}", u.getId())
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\"}"))
                 .andExpect(status().isForbidden());
     }
 }

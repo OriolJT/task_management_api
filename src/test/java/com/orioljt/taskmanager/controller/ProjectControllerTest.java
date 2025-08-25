@@ -60,11 +60,17 @@ class ProjectControllerTest {
 
     @Test
     void list_shouldReturnOk() throws Exception {
-        ProjectResponse resp = new ProjectResponse(UUID.randomUUID(), "ProjectOne", UUID.randomUUID(), Instant.now());
-        when(service.list()).thenReturn(List.of(resp));
-        mvc.perform(get("/api/projects"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("ProjectOne"));
+    ProjectResponse resp = new ProjectResponse(UUID.randomUUID(), "ProjectOne", UUID.randomUUID(), Instant.now());
+    org.springframework.data.domain.Page<com.orioljt.taskmanager.dto.ProjectResponse> page =
+        new org.springframework.data.domain.PageImpl<>(List.of(resp), org.springframework.data.domain.PageRequest.of(0, 20), 1);
+    when(service.page(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+    mvc.perform(get("/api/projects"))
+        .andExpect(status().isOk())
+        .andExpect(header().string("X-Total-Count", "1"))
+        .andExpect(header().string("Link", org.hamcrest.Matchers.containsString("/api/projects?page=0&size=20")))
+        .andExpect(header().string("Link", org.hamcrest.Matchers.containsString("rel=\"first\"")))
+        .andExpect(jsonPath("$[0].name").value("ProjectOne"));
     }
 
     @Test

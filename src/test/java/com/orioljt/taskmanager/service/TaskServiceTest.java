@@ -42,7 +42,7 @@ class TaskServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TaskService(taskRepository, projectRepository, currentUserProvider);
+        service = new TaskService(taskRepository, projectRepository, currentUserProvider, new com.orioljt.taskmanager.mapper.TaskMapper());
         userId = UUID.randomUUID();
         projectId = UUID.randomUUID();
         when(currentUserProvider.getCurrentUserId()).thenReturn(userId);

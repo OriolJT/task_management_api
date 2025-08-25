@@ -2,9 +2,11 @@ package com.orioljt.taskmanager.controller;
 
 import com.orioljt.taskmanager.dto.CreateUserRequest;
 import com.orioljt.taskmanager.dto.UpdateUserPasswordRequest;
+import com.orioljt.taskmanager.dto.UpdateUserRequest;
 import com.orioljt.taskmanager.dto.UserResponse;
 import com.orioljt.taskmanager.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
+@Validated
 @RequestMapping("/api")
 public class UserController {
 
@@ -43,5 +46,15 @@ public class UserController {
     @GetMapping("/admin/users/{id}")
     public UserResponse getUser(@PathVariable UUID id) {
         return userService.getUser(id);
+    }
+
+    @PatchMapping("/account")
+    public UserResponse updateMyAccount(@Valid @RequestBody UpdateUserRequest request) {
+        return userService.updateMyAccount(request);
+    }
+
+    @PatchMapping("/admin/users/{id}")
+    public UserResponse adminUpdateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
+        return userService.adminUpdateUser(id, request);
     }
 }

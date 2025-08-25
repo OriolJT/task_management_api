@@ -1,6 +1,9 @@
 package com.orioljt.taskmanager.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
@@ -13,9 +16,14 @@ public class User implements Persistable<UUID> {
     @Id
     private UUID id;
 
+    @Email
+    @NotBlank
+    @Size(max = 254)
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotBlank
+    @Size(min = 8, max = 100)
     @Column(nullable = false)
     private String password;
 

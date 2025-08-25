@@ -2,6 +2,7 @@ package com.orioljt.taskmanager.service;
 
 import com.orioljt.taskmanager.dto.CreateUserRequest;
 import com.orioljt.taskmanager.dto.UpdateUserPasswordRequest;
+import com.orioljt.taskmanager.dto.UpdateUserRequest;
 import com.orioljt.taskmanager.dto.UserResponse;
 import com.orioljt.taskmanager.entity.User;
 import com.orioljt.taskmanager.exception.NotFoundException;
@@ -67,5 +68,26 @@ public class UserService {
     userRepository.save(user);
     }
 
-    // Mapping moved to UserMapper
+    public UserResponse updateMyAccount(UpdateUserRequest request) {
+        UUID userId = currentUserProvider.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        mapper.update(user, request);
+        if (request.password() != null) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+        User saved = userRepository.save(user);
+        return mapper.toResponse(saved);
+    }
+
+    public UserResponse adminUpdateUser(UUID userId, UpdateUserRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        mapper.update(user, request);
+        if (request.password() != null) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+        User saved = userRepository.save(user);
+        return mapper.toResponse(saved);
+    }
 }

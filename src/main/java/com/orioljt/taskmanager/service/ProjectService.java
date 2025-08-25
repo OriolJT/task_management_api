@@ -9,6 +9,8 @@ import com.orioljt.taskmanager.repository.ProjectRepository;
 import com.orioljt.taskmanager.repository.UserRepository;
 import com.orioljt.taskmanager.security.CurrentUserProvider;
 import com.orioljt.taskmanager.mapper.ProjectMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,12 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ProjectResponse> page(Pageable pageable) {
+        UUID ownerId = currentUser.getCurrentUserId();
+        return projects.findAllByOwnerId(ownerId, pageable).map(mapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public ProjectResponse get(UUID projectId) {
         UUID ownerId = currentUser.getCurrentUserId();
         Project p = projects.findByIdAndOwnerId(projectId, ownerId)
@@ -71,6 +79,4 @@ public class ProjectService {
                 .orElseThrow(() -> new NotFoundException("Project not found"));
     projects.delete(p);
     }
-
-    // Mapping moved to ProjectMapper
 }

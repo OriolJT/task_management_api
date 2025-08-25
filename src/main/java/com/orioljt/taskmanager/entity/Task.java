@@ -1,6 +1,11 @@
 package com.orioljt.taskmanager.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.*;
 import java.util.UUID;
 
@@ -14,17 +19,22 @@ public class Task {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank
+    @Size(min = 3, max = 200)
     @Column(nullable = false)
     private String title;
 
+    @Size(max = 2000)
     private String description;
 
     @Enumerated(EnumType.STRING)
     private TaskStatus status = TODO;
 
+    @Min(1) @Max(3)
     private Integer priority;
 
     @Column(name = "due_date")
+    @FutureOrPresent
     private LocalDate dueDate;
 
     @Column(name = "created_at")

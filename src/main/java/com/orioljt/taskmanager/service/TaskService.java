@@ -9,6 +9,8 @@ import com.orioljt.taskmanager.repository.ProjectRepository;
 import com.orioljt.taskmanager.repository.TaskRepository;
 import com.orioljt.taskmanager.security.CurrentUserProvider;
 import com.orioljt.taskmanager.mapper.TaskMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,12 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public Page<TaskResponse> page(UUID projectId, Pageable pageable) {
+        requireOwnedProject(projectId);
+        return tasks.findAllByProjectId(projectId, pageable).map(mapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public TaskResponse get(UUID projectId, UUID taskId) {
     requireOwnedProject(projectId);
         Task t = tasks.findByIdAndProjectId(taskId, projectId)
@@ -77,6 +85,4 @@ public class TaskService {
         return projects.findByIdAndOwnerId(projectId, ownerId)
                 .orElseThrow(() -> new NotFoundException("Project not found or not owned by current user"));
     }
-
-    // Mapping moved to TaskMapper
 }

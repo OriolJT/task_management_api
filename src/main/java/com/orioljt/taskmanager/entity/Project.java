@@ -1,6 +1,8 @@
 package com.orioljt.taskmanager.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.*;
 
@@ -12,6 +14,8 @@ public class Project {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank
+    @Size(min = 3, max = 100)
     @Column(nullable = false)
     private String name;
 

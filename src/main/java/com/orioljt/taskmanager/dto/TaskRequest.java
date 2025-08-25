@@ -2,6 +2,7 @@ package com.orioljt.taskmanager.dto;
 
 import com.orioljt.taskmanager.entity.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -20,5 +21,5 @@ public record TaskRequest(
         @Schema(description = "Priority 1 (high) - 3 (low)", example = "1")
         @Min(1) @Max(3) Integer priority,
         @Schema(description = "Due date ISO-8601", example = "2025-09-01")
-        LocalDate dueDate
+        @FutureOrPresent(message = "dueDate must be today or a future date") LocalDate dueDate
 ) {}

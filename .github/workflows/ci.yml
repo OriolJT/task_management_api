@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests (with JaCoCo)
+        run: ./gradlew test jacocoTestReport --no-daemon --stacktrace
+
+      - name: Generate coverage badge
+        id: jacoco
+        uses: cicirello/jacoco-badge-generator@v4
+        with:
+          jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
+          coverage-badge-filename: jacoco.svg
+          badges-directory: badges
+          generate-branches-badge: false
+
+      - name: Upload coverage and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            build/reports/tests/test
+            build/reports/jacoco/test
+            badges
+
+      - name: Commit coverage badge to repo (master only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'badges/*.svg'
+          message: "[ci skip] chore: update coverage badge (${{ steps.jacoco.outputs.coverage }}%)"
+          default_author: github_actions

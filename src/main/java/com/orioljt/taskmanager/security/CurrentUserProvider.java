@@ -11,6 +11,21 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Resolves the current authenticated user's local UUID from the Spring Security context.
+ *
+ * <p>Resolution order:
+ *
+ * <ol>
+ *   <li>If JWT auth: use {@code sub} as UUID when present and user exists locally.
+ *   <li>Otherwise, try {@code email} (or {@code preferred_username}) to look up the local user.
+ *   <li>If not JWT: try parsing {@link Authentication#getName()} as a UUID.
+ *   <li>Fallback to {@code app.dev-user-id} when configured (useful for local/dev).
+ * </ol>
+ *
+ * <p>Throws {@link IllegalStateException} when no local user mapping can be determined and no
+ * fallback is configured.
+ */
 public class CurrentUserProvider {
 
   private final UserRepository userRepository;
@@ -22,6 +37,14 @@ public class CurrentUserProvider {
   @Value("${app.dev-user-id:}")
   private String devUserId;
 
+  /**
+   * Returns the local user id for the current authentication based on JWT subject/email or
+   * authentication name, with an optional development fallback.
+   *
+   * @return the local {@link UUID} of the authenticated user
+   * @throws IllegalStateException if the identity cannot be mapped to a local user and no {@code
+   *     app.dev-user-id} is configured
+   */
   public UUID getCurrentUserId() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth instanceof JwtAuthenticationToken jwtAuth && auth.isAuthenticated()) {

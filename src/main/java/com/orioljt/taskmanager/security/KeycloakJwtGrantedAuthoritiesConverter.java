@@ -3,10 +3,18 @@ package com.orioljt.taskmanager.security;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+/**
+ * Extracts Spring Security {@link GrantedAuthority} values from a Keycloak JWT.
+ *
+ * <p>Aggregates roles from {@code realm_access.roles} and {@code resource_access[client].roles}
+ * (for either the configured client or all clients when none is configured) and maps them to {@code
+ * ROLE_*} authorities. Also maps space-delimited {@code scope} into {@code SCOPE_*} authorities.
+ */
 public class KeycloakJwtGrantedAuthoritiesConverter
     implements Converter<Jwt, Collection<GrantedAuthority>> {
 
@@ -20,8 +28,15 @@ public class KeycloakJwtGrantedAuthoritiesConverter
     this.resourceClientId = resourceClientId;
   }
 
+  /**
+   * Converts a Keycloak {@link Jwt} into a collection of authorities derived from realm roles,
+   * client roles, and scopes.
+   *
+   * @param jwt decoded JWT token from the resource server
+   * @return an ordered, de-duplicated set of authorities (ROLE_* and SCOPE_*)
+   */
   @Override
-  public Collection<GrantedAuthority> convert(Jwt jwt) {
+  public Collection<GrantedAuthority> convert(@NonNull Jwt jwt) {
     Set<String> roles = new HashSet<>();
 
     Map<String, Object> realmAccess = jwt.getClaim("realm_access");

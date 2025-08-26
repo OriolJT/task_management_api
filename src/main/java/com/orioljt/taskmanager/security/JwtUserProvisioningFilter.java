@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,18 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Filter that auto-provisions a local {@link com.orioljt.taskmanager.entity.User} from a validated
+ * JWT.
+ *
+ * <p>Runs once per request after JWT authentication has populated the {@link
+ * org.springframework.security.core.context.SecurityContextHolder}. If the user referenced by the
+ * JWT does not exist, a new {@code User} is created with a random placeholder password and a role
+ * derived from authorities.
+ *
+ * <p>Uses {@code sub} (UUID) as primary key when possible, falling back to the {@code email} or
+ * {@code preferred_username} claims.
+ */
 @Component
 public class JwtUserProvisioningFilter extends OncePerRequestFilter {
 
@@ -36,7 +49,9 @@ public class JwtUserProvisioningFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      @NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response,
+      @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication instanceof JwtAuthenticationToken jwtAuth

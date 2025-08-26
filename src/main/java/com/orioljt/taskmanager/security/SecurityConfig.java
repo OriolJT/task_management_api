@@ -10,6 +10,14 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+/**
+ * Web security configuration for JWT-based authentication and endpoint access rules.
+ *
+ * <p>Exposes Swagger endpoints without auth, allows anonymous POST on {@code /api/users}, and
+ * restricts {@code /api/admin/**} to {@code ROLE_ADMIN}. All other endpoints require
+ * authentication. Adds {@link JwtUserProvisioningFilter} after {@link
+ * BearerTokenAuthenticationFilter} to ensure a local user exists for an authenticated JWT.
+ */
 public class SecurityConfig {
 
   private static final String[] SWAGGER_WHITELIST = {
@@ -17,6 +25,10 @@ public class SecurityConfig {
   };
 
   @Bean
+  /**
+   * Builds the {@link SecurityFilterChain} with JWT resource server support and custom access
+   * rules; adds the provisioning filter post JWT authentication.
+   */
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
       JwtAuthenticationConverter jwtAuthConverter,
@@ -42,6 +54,10 @@ public class SecurityConfig {
   }
 
   @Bean
+  /**
+   * Provides a {@link JwtAuthenticationConverter} that uses the Keycloak converter for roles and
+   * scopes.
+   */
   public JwtAuthenticationConverter jwtAuthenticationConverter(
       KeycloakJwtGrantedAuthoritiesConverter authoritiesConverter) {
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
@@ -50,6 +66,10 @@ public class SecurityConfig {
   }
 
   @Bean
+  /**
+   * Builds a {@link KeycloakJwtGrantedAuthoritiesConverter} bound to a specific client id when
+   * configured; otherwise aggregates roles from all clients.
+   */
   public KeycloakJwtGrantedAuthoritiesConverter keycloakJwtGrantedAuthoritiesConverter(
       @Value("${app.security.oauth2.client-id:}") String clientId) {
     if (clientId == null || clientId.isBlank()) {

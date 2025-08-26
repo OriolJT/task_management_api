@@ -1,53 +1,56 @@
 package com.orioljt.taskmanager.controller.util;
 
+import java.net.URI;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.util.Set;
-
 public final class PaginationUtil {
-    private PaginationUtil() {}
+  private PaginationUtil() {}
 
-    public static HttpHeaders generatePaginationHttpHeaders(UriComponentsBuilder baseUri, Page<?> page) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Total-Count", Long.toString(page.getTotalElements()));
+  public static HttpHeaders generatePaginationHttpHeaders(
+      UriComponentsBuilder baseUri, Page<?> page) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("X-Total-Count", Long.toString(page.getTotalElements()));
 
-        StringBuilder link = new StringBuilder();
-        if (page.hasPrevious()) {
-            URI uri = prepareUri(baseUri, page.getPageable().previousOrFirst());
-            appendLink(link, uri, "prev");
-        }
-        URI first = prepareUri(baseUri, page.getPageable().withPage(0));
-        appendLink(link, first, "first");
-        URI last = prepareUri(baseUri, page.getPageable().withPage(page.getTotalPages() == 0 ? 0 : page.getTotalPages() - 1));
-        appendLink(link, last, "last");
-        if (page.hasNext()) {
-            URI uri = prepareUri(baseUri, page.getPageable().next());
-            appendLink(link, uri, "next");
-        }
-        headers.add(HttpHeaders.LINK, link.toString());
-        return headers;
+    StringBuilder link = new StringBuilder();
+    if (page.hasPrevious()) {
+      URI uri = prepareUri(baseUri, page.getPageable().previousOrFirst());
+      appendLink(link, uri, "prev");
     }
-
-    private static void appendLink(StringBuilder link, URI uri, String rel) {
-        if (!link.isEmpty()) link.append(", ");
-        link.append("<").append(uri.toString()).append(">; rel=\"").append(rel).append("\"");
+    URI first = prepareUri(baseUri, page.getPageable().withPage(0));
+    appendLink(link, first, "first");
+    URI last =
+        prepareUri(
+            baseUri,
+            page.getPageable().withPage(page.getTotalPages() == 0 ? 0 : page.getTotalPages() - 1));
+    appendLink(link, last, "last");
+    if (page.hasNext()) {
+      URI uri = prepareUri(baseUri, page.getPageable().next());
+      appendLink(link, uri, "next");
     }
+    headers.add(HttpHeaders.LINK, link.toString());
+    return headers;
+  }
 
-    private static URI prepareUri(UriComponentsBuilder baseUri, Pageable pageable) {
-        return baseUri.replaceQueryParam("page", pageable.getPageNumber())
-                .replaceQueryParam("size", pageable.getPageSize())
-                .replaceQueryParam("sort", pageable.getSort().toString().replace(": ", ","))
-                .build().toUri();
-    }
+  private static void appendLink(StringBuilder link, URI uri, String rel) {
+    if (!link.isEmpty()) link.append(", ");
+    link.append("<").append(uri.toString()).append(">; rel=\"").append(rel).append("\"");
+  }
 
-    public static Sort sanitizeSort(Sort sort, Set<String> allowed) {
-        return Sort.by(sort.stream()
-                .filter(order -> allowed.contains(order.getProperty()))
-                .toList());
-    }
+  private static URI prepareUri(UriComponentsBuilder baseUri, Pageable pageable) {
+    return baseUri
+        .replaceQueryParam("page", pageable.getPageNumber())
+        .replaceQueryParam("size", pageable.getPageSize())
+        .replaceQueryParam("sort", pageable.getSort().toString().replace(": ", ","))
+        .build()
+        .toUri();
+  }
+
+  public static Sort sanitizeSort(Sort sort, Set<String> allowed) {
+    return Sort.by(sort.stream().filter(order -> allowed.contains(order.getProperty())).toList());
+  }
 }

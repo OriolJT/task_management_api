@@ -9,8 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class SecurityBeans {
 
-    @Bean
-    public PasswordEncoder passwordEncoder(@Value("${app.security.password.bcrypt-strength:12}") int strength) {
-        return new BCryptPasswordEncoder(strength);
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder(
+      @Value("${app.security.password.bcrypt-strength:12}") int strength) {
+    return new BCryptPasswordEncoder(strength);
+  }
 }

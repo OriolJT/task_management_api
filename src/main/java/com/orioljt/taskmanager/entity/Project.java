@@ -10,50 +10,68 @@ import java.util.*;
 @Table(name = "projects")
 public class Project {
 
-    @Id
-    @GeneratedValue
-    private UUID id;
+  @Id @GeneratedValue private UUID id;
 
-    @NotBlank
-    @Size(min = 3, max = 100)
-    @Column(nullable = false)
-    private String name;
+  @NotBlank
+  @Size(min = 3, max = 100)
+  @Column(nullable = false)
+  private String name;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "owner_id")
-    private User owner;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "owner_id")
+  private User owner;
 
-    @Column(name = "created_at")
-    private Instant createdAt = Instant.now();
+  @Column(name = "created_at")
+  private Instant createdAt = Instant.now();
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Task> tasks = new ArrayList<>();
+  @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Task> tasks = new ArrayList<>();
 
-    public UUID getId() {
-        return id;
+  public UUID getId() {
+    return id;
+  }
+
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public User getOwner() {
+    return owner;
+  }
+
+  public void setOwner(User owner) {
+    this.owner = owner;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public List<Task> getTasks() {
+    return tasks;
+  }
+
+  public void addTask(Task task) {
+    if (task == null) return;
+    if (!this.tasks.contains(task)) {
+      this.tasks.add(task);
     }
+    task.setProject(this);
+  }
 
-    public void setId(UUID id) {
-        this.id = id;
+  public void removeTask(Task task) {
+    if (task == null) return;
+    this.tasks.remove(task);
+    if (task.getProject() == this) {
+      task.setProject(null);
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  }
 }

@@ -6,62 +6,70 @@ import com.orioljt.taskmanager.dto.UpdateUserRequest;
 import com.orioljt.taskmanager.dto.UserResponse;
 import com.orioljt.taskmanager.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import java.net.URI;
 import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Validated
 @RequestMapping("/api")
 public class UserController {
 
-    private final UserService userService;
+  private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+  public UserController(UserService userService) {
+    this.userService = userService;
+  }
 
-    @PostMapping("/users")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest createUserRequest) {
-        UserResponse userResponse = userService.register(createUserRequest);
-        return ResponseEntity.created(URI.create("/api/users/" + userResponse.id()))
-                .body(userResponse);
-    }
+  @PostMapping("/users")
+  @PreAuthorize("permitAll()")
+  public ResponseEntity<UserResponse> register(
+      @Valid @RequestBody CreateUserRequest createUserRequest) {
+    UserResponse userResponse = userService.register(createUserRequest);
+    return ResponseEntity.created(URI.create("/api/users/" + userResponse.id())).body(userResponse);
+  }
 
-    @GetMapping("/account")
-    @PreAuthorize("isAuthenticated()")
-    public UserResponse getAccount() {
-        return userService.getCurrentUser();
-    }
+  @GetMapping("/account")
+  @PreAuthorize("isAuthenticated()")
+  public UserResponse getAccount() {
+    return userService.getCurrentUser();
+  }
 
-    @PatchMapping("/account/password")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> updateAccountPassword(
-            @Valid @RequestBody UpdateUserPasswordRequest updateUserPasswordRequest) {
-        userService.updateMyPassword(updateUserPasswordRequest);
-        return ResponseEntity.noContent().build();
-    }
+  @PatchMapping("/account/password")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<Void> updateAccountPassword(
+      @Valid @RequestBody UpdateUserPasswordRequest updateUserPasswordRequest) {
+    userService.updateMyPassword(updateUserPasswordRequest);
+    return ResponseEntity.noContent().build();
+  }
 
-    @GetMapping("/admin/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public UserResponse getUser(@PathVariable UUID id) {
-        return userService.getUser(id);
-    }
+  @GetMapping("/admin/users/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public UserResponse getUser(@PathVariable UUID id) {
+    return userService.getUser(id);
+  }
 
-    @PatchMapping("/account")
-    @PreAuthorize("isAuthenticated()")
-    public UserResponse updateMyAccount(@Valid @RequestBody UpdateUserRequest request) {
-        return userService.updateMyAccount(request);
-    }
+  @PatchMapping("/account")
+  @PreAuthorize("isAuthenticated()")
+  public UserResponse updateMyAccount(@Valid @RequestBody UpdateUserRequest request) {
+    return userService.updateMyAccount(request);
+  }
 
-    @PatchMapping("/admin/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public UserResponse adminUpdateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
-        return userService.adminUpdateUser(id, request);
-    }
+  @PatchMapping("/admin/users/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public UserResponse adminUpdateUser(
+      @PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
+    return userService.adminUpdateUser(id, request);
+  }
+
+  @DeleteMapping("/account/projects/{projectId}")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<Void> removeMyProject(
+      @PathVariable UUID projectId, com.orioljt.taskmanager.service.ProjectService projectService) {
+    projectService.delete(projectId);
+    return ResponseEntity.noContent().build();
+  }
 }

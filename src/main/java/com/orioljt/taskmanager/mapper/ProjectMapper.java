@@ -9,25 +9,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProjectMapper {
 
-    public Project toNewEntity(ProjectRequest request, User owner) {
-        Project project = new Project();
-        project.setName(request.name());
-        project.setOwner(owner);
-        return project;
-    }
+  public Project toNewEntity(ProjectRequest request, User owner) {
+    Project project = new Project();
+    project.setName(request.name());
+    owner.addProject(project);
+    return project;
+  }
 
-    public void update(Project project, ProjectRequest request) {
-        if (request.name() != null) {
-            project.setName(request.name());
-        }
+  public void update(Project project, ProjectRequest request) {
+    if (request.name() != null) {
+      project.setName(request.name());
     }
+  }
 
-    public ProjectResponse toResponse(Project project) {
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getOwner().getId(),
-                project.getCreatedAt()
-        );
-    }
+  public ProjectResponse toResponse(Project project) {
+    return new ProjectResponse(
+        project.getId(), project.getName(), project.getOwner().getId(), project.getCreatedAt());
+  }
 }

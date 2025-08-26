@@ -10,13 +10,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 @Configuration
 public class SecurityUserDetails {
 
-    @Bean
-    public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> userRepository.findByEmail(username)
-                .map(u -> User.withUsername(u.getEmail())
+  @Bean
+  public UserDetailsService userDetailsService(UserRepository userRepository) {
+    return username ->
+        userRepository
+            .findByEmail(username)
+            .map(
+                u ->
+                    User.withUsername(u.getEmail())
                         .password(u.getPassword())
                         .roles(u.getRole() != null ? u.getRole().name() : "USER")
                         .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  }
 }

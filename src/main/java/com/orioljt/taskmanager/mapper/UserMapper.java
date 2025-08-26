@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
-    public UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getCreatedAt());
-    }
+  public UserResponse toResponse(User user) {
+    return new UserResponse(user.getId(), user.getEmail(), user.getCreatedAt());
+  }
 
-    public void update(User user, UpdateUserRequest request) {
-        if (request.email() != null) user.setEmail(request.email());
-        if (request.role() != null) user.setRole(request.role());
-    }
+  public void update(User user, UpdateUserRequest request) {
+    if (request.email() != null) user.setEmail(request.email());
+    if (request.role() != null) user.setRole(request.role());
+  }
 }

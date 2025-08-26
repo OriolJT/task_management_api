@@ -1,6 +1,11 @@
 package com.orioljt.taskmanager.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.UUID;
 
-public record UserResponse(UUID id, String email, Instant createdAt) {}
+@Schema(description = "User resource representation")
+public record UserResponse(
+    @Schema(description = "User id") UUID id,
+    @Schema(description = "Email address") String email,
+    @Schema(description = "Creation timestamp") Instant createdAt) {}

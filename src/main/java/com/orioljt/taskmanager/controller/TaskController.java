@@ -4,6 +4,15 @@ import com.orioljt.taskmanager.controller.util.PaginationUtil;
 import com.orioljt.taskmanager.dto.TaskRequest;
 import com.orioljt.taskmanager.dto.TaskResponse;
 import com.orioljt.taskmanager.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +37,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RestController
 @Validated
 @RequestMapping("/api/projects/{projectId}/tasks")
+@Tag(name = "Tasks", description = "Operations on tasks within a project")
 public class TaskController {
 
   private final TaskService taskService;
@@ -37,17 +47,56 @@ public class TaskController {
   }
 
   @PostMapping
+  @Operation(summary = "Create a task", description = "Creates a new task under the given project")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Created",
+        content = @Content(schema = @Schema(implementation = TaskResponse.class))),
+    @ApiResponse(responseCode = "404", description = "Project not found", content = @Content),
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+  })
   public TaskResponse create(
       @PathVariable UUID projectId, @RequestBody @Valid TaskRequest request) {
     return taskService.create(projectId, request);
   }
 
   @GetMapping
+  @Operation(
+      summary = "List tasks",
+      description = "Returns a page of tasks with pagination headers; sorting is sanitized.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "OK",
+        headers = {
+          @Header(
+              name = "Link",
+              description = "Pagination links (first, last, prev, next)",
+              schema = @Schema(type = "string")),
+          @Header(
+              name = "X-Total-Count",
+              description = "Total items count",
+              schema = @Schema(type = "integer", format = "int64"))
+        },
+        content =
+            @Content(array = @ArraySchema(schema = @Schema(implementation = TaskResponse.class)))),
+    @ApiResponse(responseCode = "404", description = "Project not found", content = @Content),
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+  })
   public ResponseEntity<List<TaskResponse>> list(
       @PathVariable UUID projectId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(defaultValue = "createdAt,desc") List<String> sort,
+      @Parameter(description = "Zero-based page index", example = "0")
+          @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Page size (1-100)", example = "20")
+          @RequestParam(defaultValue = "20")
+          int size,
+      @Parameter(
+              description = "Sort directives (multi-valued): field,dir",
+              array = @ArraySchema(arraySchema = @Schema(description = "e.g. createdAt,desc")))
+          @RequestParam(defaultValue = "createdAt,desc")
+          List<String> sort,
       UriComponentsBuilder uriBuilder) {
 
     Sort requested =
@@ -83,11 +132,26 @@ public class TaskController {
   }
 
   @GetMapping("/{id}")
+  @Operation(summary = "Get a task")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "OK"),
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content),
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+  })
   public TaskResponse get(@PathVariable UUID projectId, @PathVariable UUID id) {
     return taskService.get(projectId, id);
   }
 
   @PatchMapping("/{id}")
+  @Operation(
+      summary = "Update a task",
+      description = "Partial update; only non-null fields are applied")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "OK"),
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content),
+    @ApiResponse(responseCode = "400", description = "Validation error", content = @Content),
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+  })
   public TaskResponse update(
       @PathVariable UUID projectId,
       @PathVariable UUID id,
@@ -96,6 +160,12 @@ public class TaskController {
   }
 
   @DeleteMapping("/{id}")
+  @Operation(summary = "Delete a task")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "No Content"),
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content),
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+  })
   public ResponseEntity<Void> delete(@PathVariable UUID projectId, @PathVariable UUID id) {
     taskService.delete(projectId, id);
     return ResponseEntity.noContent().build();

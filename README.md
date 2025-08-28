@@ -8,6 +8,7 @@ Simple, production-ready Spring Boot 3.5 REST API to manage Users, Projects, and
   <img alt="Build" src="https://img.shields.io/badge/build-Gradle-green" />
   <a href="https://github.com/OriolJT/task_management_api/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/OriolJT/task_management_api/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="./badges/jacoco.svg"><img alt="Coverage" src="./badges/jacoco.svg" /></a>
+  <a href="https://orioljt.github.io/task_management_api/"><img alt="Docs" src="https://img.shields.io/badge/Docs-ReDoc-blue" /></a>
   <a href="./DEPLOY.md"><img alt="Deploy Docs" src="https://img.shields.io/badge/Deploy-Docs-blue" /></a>
 </p>
 
@@ -47,10 +48,6 @@ Simple, production-ready Spring Boot 3.5 REST API to manage Users, Projects, and
   docker compose up --build
   ```
 
-- OpenAPI UI
-  - Swagger UI: http://localhost:8080/swagger-ui/index.html
-  - JSON: http://localhost:8080/v3/api-docs
-
 See also: [Deploy guide](./DEPLOY.md)
 
 ## Example
@@ -74,13 +71,8 @@ Example 200 response:
 ]
 ```
 
-Swagger UI preview
-
-<p align="center">
-  <img alt="Swagger UI" src="./docs/swagger-ui.svg" width="800" />
-  <br/>
-  <em>Illustrative preview of endpoints and a sample response</em>
-  </p>
+## API Documentation
+👉 [View the API Docs](https://orioljt.github.io/task_management_api/)
 
 ## Architecture
 
@@ -122,7 +114,3 @@ Swagger UI preview
 - If Keycloak is external, set env vars to match your issuer/client:
   - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`, `APP_SECURITY_OAUTH2_CLIENT_ID` (the app also accepts `KEYCLOAK_ISSUER_URI`/`KEYCLOAK_CLIENT_ID` as a convenience)
 - Database connection for Docker deploy is configured via envs in `docker-compose.yml`
-
-## License
-
-⚠️ This repository is for portfolio demonstration only. No license granted for production use.

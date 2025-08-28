@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Task Management API – ReDoc</title>
+		<meta name="description" content="Task Management API reference rendered by ReDoc" />
+		<style>
+			html, body { height: 100%; margin: 0; padding: 0; }
+			body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+			#loading { display:flex; align-items:center; justify-content:center; height:100%; color:#4a5568; }
+			.topbar { position: fixed; top: 0; left: 0; right: 0; height: 48px; display:flex; align-items:center; gap:12px; padding: 0 16px; background: #0f172a; color: #e2e8f0; z-index: 10; box-shadow: 0 1px 0 rgba(255,255,255,0.06); }
+			.topbar a { color: #93c5fd; text-decoration: none; }
+			.content { position: absolute; top: 48px; bottom:0; left:0; right:0; }
+		</style>
+		<!-- ReDoc standalone script (pinned) -->
+		<script src="https://cdn.jsdelivr.net/npm/redoc@2.1.4/bundles/redoc.standalone.min.js"></script>
+	</head>
+	<body>
+		<div class="topbar">
+			<strong>Task Management API</strong>
+			<span style="opacity:.6">•</span>
+			<span>ReDoc</span>
+			<span style="flex:1"></span>
+			<a id="download-link" href="#" download>Download JSON</a>
+		</div>
+		<div id="redoc-container" class="content">
+			<div id="loading">Loading API documentation…</div>
+		</div>
+
+		<script>
+			(function() {
+				// Allow overriding the spec via query param: ?url=https://example.com/openapi.json
+				const params = new URLSearchParams(location.search);
+				const overrideUrl = params.get('url') || params.get('spec');
+
+				// Candidate URLs in order of preference for GitHub Pages without CI:
+				// 1) ./openapi.json committed to the repo (best for Pages)
+				// 2) /v3/api-docs from a running instance (useful locally)
+				const candidates = overrideUrl ? [overrideUrl] : [
+					'./openapi.json',
+					'/v3/api-docs'
+				];
+
+				// Small helper to try URLs sequentially until one works
+				async function resolveSpecUrl(urls) {
+					for (const u of urls) {
+						try {
+							const res = await fetch(u, { method: 'GET', mode: 'cors' });
+							if (res.ok) return u;
+						} catch (_) {
+							// ignore and try next
+						}
+					}
+					return null;
+				}
+
+				function initRedoc(specUrl) {
+					if (!specUrl) {
+						const el = document.getElementById('loading');
+						el.textContent = 'No OpenAPI document found. Provide docs/openapi.json or start the API and use /v3/api-docs, or pass ?url=...';
+						return;
+					}
+					// Update download link
+					const dl = document.getElementById('download-link');
+					dl.href = specUrl;
+
+					// Initialize ReDoc
+					Redoc.init(specUrl, {
+						hideDownloadButton: true,
+						expandResponses: '200,201,4xx,5xx',
+						expandSingleSchemaField: true,
+						jsonSampleExpandLevel: 2,
+						hideHostname: false,
+						theme: {
+							colors: { primary: { main: '#2563eb' } },
+							rightPanel: { backgroundColor: '#0b1020' },
+							sidebar: { backgroundColor: '#0f172a' },
+							typography: { fontSize: '14px', lineHeight: '1.45' }
+						}
+					}, document.getElementById('redoc-container'));
+				}
+
+				resolveSpecUrl(candidates).then(initRedoc);
+			})();
+		</script>
+	</body>
+	</html>

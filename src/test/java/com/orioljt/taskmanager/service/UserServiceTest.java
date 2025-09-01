@@ -118,4 +118,50 @@ class UserServiceTest {
     assertThatThrownBy(() -> service.updateMyPassword(new UpdateUserPasswordRequest("Password1")))
         .isInstanceOf(NotFoundException.class);
   }
+
+  @Test
+  void updateMyAccount_updatesEmailRoleAndPassword() {
+    UUID id = UUID.randomUUID();
+    when(currentUserProvider.getCurrentUserId()).thenReturn(id);
+    User u = new User();
+    u.setId(id);
+    u.setEmail("old@e.com");
+    when(userRepository.findById(id)).thenReturn(Optional.of(u));
+    when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    UpdateUserRequest req = new UpdateUserRequest("new@e.com", com.orioljt.taskmanager.entity.UserRole.ADMIN, "Password123");
+    UserResponse res = service.updateMyAccount(req);
+
+    assertThat(res.email()).isEqualTo("new@e.com");
+    verify(passwordEncoder).encode("Password123");
+  }
+
+  @Test
+  void updateMyAccount_shouldThrowIfMissing() {
+    UUID id = UUID.randomUUID();
+    when(currentUserProvider.getCurrentUserId()).thenReturn(id);
+    when(userRepository.findById(id)).thenReturn(Optional.empty());
+    assertThatThrownBy(() -> service.updateMyAccount(new UpdateUserRequest(null, null, null)))
+        .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void adminUpdateUser_updatesWhenFound() {
+    UUID id = UUID.randomUUID();
+    User u = new User();
+    u.setId(id);
+    when(userRepository.findById(id)).thenReturn(Optional.of(u));
+    when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    UpdateUserRequest req = new UpdateUserRequest("a@b.com", com.orioljt.taskmanager.entity.UserRole.USER, null);
+    UserResponse res = service.adminUpdateUser(id, req);
+    assertThat(res.email()).isEqualTo("a@b.com");
+  }
+
+  @Test
+  void adminUpdateUser_shouldThrowIfMissing() {
+    UUID id = UUID.randomUUID();
+    when(userRepository.findById(id)).thenReturn(Optional.empty());
+    assertThatThrownBy(() -> service.adminUpdateUser(id, new UpdateUserRequest(null, null, null)))
+        .isInstanceOf(NotFoundException.class);
+  }
 }

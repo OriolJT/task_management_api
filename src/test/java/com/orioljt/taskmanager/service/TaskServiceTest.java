@@ -100,6 +100,23 @@ class TaskServiceTest {
   }
 
   @Test
+  void page_shouldReturnMappedPage() {
+    Task t = new Task();
+    t.setId(UUID.randomUUID());
+    t.setTitle("T");
+    t.setProject(ownedProject);
+    org.springframework.data.domain.Pageable pageable =
+        org.springframework.data.domain.PageRequest.of(0, 10);
+    org.springframework.data.domain.Page<Task> page =
+        new org.springframework.data.domain.PageImpl<>(java.util.List.of(t), pageable, 1);
+    when(taskRepository.findAllByProjectId(projectId, pageable)).thenReturn(page);
+
+  org.springframework.data.domain.Page<TaskResponse> res = service.page(projectId, pageable);
+  org.assertj.core.api.Assertions.assertThat(res.getTotalElements()).isEqualTo(1);
+  org.assertj.core.api.Assertions.assertThat(res.getContent().getFirst().title()).isEqualTo("T");
+  }
+
+  @Test
   void get_shouldReturnTaskWhenOwned() {
     UUID taskId = UUID.randomUUID();
     Task t = new Task();

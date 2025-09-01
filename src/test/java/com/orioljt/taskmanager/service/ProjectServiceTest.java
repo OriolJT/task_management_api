@@ -82,7 +82,31 @@ class ProjectServiceTest {
 
     List<ProjectResponse> list = service.list();
     assertThat(list).hasSize(1);
-    assertThat(list.get(0).name()).isEqualTo("P1");
+    assertThat(list.getFirst().name()).isEqualTo("P1");
+  }
+
+  @Test
+  void page_shouldReturnMappedPage() {
+    org.springframework.data.domain.Pageable pageable =
+        org.springframework.data.domain.PageRequest.of(0, 5);
+    Project p = new Project();
+    p.setId(UUID.randomUUID());
+    p.setName("P1");
+    p.setOwner(owner);
+    when(projectRepository.findAllByOwnerId(userId, pageable))
+        .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(p), pageable, 1));
+
+    org.springframework.data.domain.Page<ProjectResponse> page = service.page(pageable);
+    org.assertj.core.api.Assertions.assertThat(page.getTotalElements()).isEqualTo(1);
+    org.assertj.core.api.Assertions.assertThat(page.getContent().getFirst().name()).isEqualTo("P1");
+  }
+
+  @Test
+  void create_shouldThrowWhenOwnerMissing() {
+    when(userRepository.findById(userId)).thenReturn(java.util.Optional.empty());
+    assertThatThrownBy(() -> service.create(new ProjectRequest("X")))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining("Owner user not found");
   }
 
   @Test

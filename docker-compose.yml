@@ -28,6 +28,8 @@ services:
       # KC_PROXY: edge
     ports:
       - "8081:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     networks:
       - backend
 
